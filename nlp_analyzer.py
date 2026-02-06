@@ -4,12 +4,8 @@ from typing import List, Dict
 
 class ContractAnalyzer:
     def __init__(self):
-        try:
-            self.nlp = spacy.load("en_core_web_sm")
-        except:
-            import os
-            os.system("python -m spacy download en_core_web_sm")
-            self.nlp = spacy.load("en_core_web_sm")
+    self.nlp = None  # Disable spaCy for now
+
     
     def classify_contract_type(self, text: str) -> str:
         text_lower = text.lower()
@@ -60,23 +56,16 @@ class ContractAnalyzer:
         return "General Clause"
     
     def extract_entities(self, text: str) -> Dict:
-        doc = self.nlp(text[:5000])
-        entities = {
-            'parties': [],
-            'dates': [],
-            'amounts': [],
-            'jurisdiction': []
-        }
-        for ent in doc.ents:
-            if ent.label_ == 'ORG' or ent.label_ == 'PERSON':
-                entities['parties'].append(ent.text)
-            elif ent.label_ == 'DATE':
-                entities['dates'].append(ent.text)
-            elif ent.label_ == 'MONEY':
-                entities['amounts'].append(ent.text)
-            elif ent.label_ == 'GPE':
-                entities['jurisdiction'].append(ent.text)
-        return entities
+    # Simple regex-based extraction (no spaCy needed)
+    import re
+    entities = {
+        'parties': re.findall(r'\b[A-Z][a-z]+ [A-Z][a-z]+\b', text)[:5],
+        'dates': re.findall(r'\d{1,2}[-/]\d{1,2}[-/]\d{2,4}', text)[:5],
+        'amounts': re.findall(r'\$[\d,]+(?:\.\d{2})?', text)[:5],
+        'jurisdiction': []
+    }
+    return entities
+
     
     def extract_obligations(self, text: str) -> List[str]:
         obligation_words = ["shall", "must", "required to", "obligated"]
@@ -96,4 +85,5 @@ class ContractAnalyzer:
             "Risk assessment completed"
         ]
         return summary
+
 
